@@ -1,0 +1,6 @@
+1. In Blender goto User preferences -> Add-ons -> Install from file...
+2. Choose thePlant.py
+3. Find Add-on in list and enable it
+
+
+  
