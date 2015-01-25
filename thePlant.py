@@ -436,7 +436,7 @@ class CharacterCopy(bpy.types.Operator):
                 r1 = (random.random()-0.5)*2*rA
                 r2 = (random.random()-0.5)*2*rA
 
-                location = (j*xspacing+r1, i*yspacing-r2, obj.location[2])
+                location = (obj.location[0]+j*xspacing+r1, obj.location[1]+i*yspacing-r2, obj.location[2])
                 obj_new = obj.copy()
 
                 obj_new.location = location
