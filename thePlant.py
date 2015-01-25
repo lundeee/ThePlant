@@ -10,7 +10,7 @@
 # Lundeee
 #
 #
-
+# pylint: disable=too-many-instance-attributes,missing-docstring,invalid-name,import-error
 
 bl_info = {"name": "ThePlant",
            "author": "Lundeee",
@@ -24,17 +24,17 @@ bl_info = {"name": "ThePlant",
            "description": "Script for mass duplication of complete rigs"}
 
 import bpy
-
 import random
 
 
 class ToolsPanel(bpy.types.Panel):
+    def __init__(self):
+        pass
     bl_label = "The Plant Tools"
     bl_space_type = "VIEW_3D"
     bl_region_type = "TOOLS"
     bl_category = "The Plant"
     bl_context = "objectmode"
-
 
     def draw(self, context):
         layout = self.layout
@@ -71,17 +71,16 @@ class OBJECT_OT_Button2(bpy.types.Operator):
     def execute(self, context):
         bpy.ops.theplant.seperatetolayers('INVOKE_DEFAULT')
         return{'FINISHED'}
+
 ###############################
 #      deleteHierarchy(
 ###############################
-
 
 class deleteHierarchy(bpy.types.Operator):
     bl_idname = "theplant.deletehierarchy"
     bl_label = "DeleteHierarchy"
 
     def execute(self, context):
-
         ly = []
         for l in bpy.context.scene.layers:
             ly.append(l)
@@ -99,11 +98,7 @@ class deleteHierarchy(bpy.types.Operator):
         bpy.ops.object.delete()
         bpy.context.scene.layersi = ly
 
-
-
         return{'FINISHED'}
-
-
 
 ###############################
 #      Randomize time
@@ -112,20 +107,12 @@ class deleteHierarchy(bpy.types.Operator):
 class randomizeTime(bpy.types.Operator):
     bl_idname = "theplant.randomizetime"
     bl_label = "Seperate to layers"
-
-
-
     rFactor = bpy.props.FloatProperty(name="Randomize by:",
                                       min=0, max=300)
     offset = bpy.props.IntProperty(name="Offset all by:")
 
-
-
     def execute(self, context):
-
-
         obj = bpy.context.scene.objects.active
-
         for o in obj.children:
             if o.type == "ARMATURE":
                 try:
@@ -144,7 +131,6 @@ class randomizeTime(bpy.types.Operator):
         self.rFactor = 30
         self.offset = 0
 
-
         return context.window_manager.invoke_props_dialog(self)
 
 ###############################
@@ -155,10 +141,7 @@ class replaceMesh(bpy.types.Operator):
     bl_idname = "theplant.replacemesh"
     bl_label = "Replace mesh"
 
-
 #    offset = bpy.props.IntProperty(name="Offset all by:")
-
-
 
     def execute(self, context):
 
@@ -174,14 +157,9 @@ class replaceMesh(bpy.types.Operator):
             except:
                 hu = False
 
-
-
             if hu == True:
-
                 for ch in o.children:
-
                     if ch.type == "ARMATURE":
-
                         for m in ch.children:
                             pass
                             if m.type == "MESH":
@@ -212,13 +190,6 @@ class replaceMesh(bpy.types.Operator):
                                     bpy.ops.object.modifier_add(type="ARMATURE")
                                     obj_new.modifiers["Armature"].object = ch
 
-
-
-
-
-
-
-
         return {'FINISHED'}
 
     def invoke(self, context, event):
@@ -226,30 +197,21 @@ class replaceMesh(bpy.types.Operator):
         self.rFactor = 30
         self.offseti = 0
 
-
         return context.window_manager.invoke_props_dialog(self)
-
 
 #########################################
 #  randomizeTimeDistance
 #########################################
 
-
 class randomizeTimeDistance(bpy.types.Operator):
     bl_idname = "theplant.randomizetimedistance"
     bl_label = "Seperate to layers"
-
-
-
 
     dFactor = bpy.props.FloatProperty(name="Difference last-first:")
     offset = bpy.props.IntProperty(name="Offset all by:")
     rFactor = bpy.props.FloatProperty(name="Randomize by:")
 
-
     def execute(self, context):
-
-
         obj = bpy.context.scene.objects.active
         point = obj.location
         childrens = []
@@ -262,12 +224,9 @@ class randomizeTimeDistance(bpy.types.Operator):
                 hu = o["Crowd"]
             except:
                 hu = False
-
-
             #print(hu)
+
             if hu == True:
-
-
                 for ch in o.children:
                     #print(ch.name)
                     if ch.type == "ARMATURE":
@@ -280,19 +239,13 @@ class randomizeTimeDistance(bpy.types.Operator):
                         if distance < min:
                             min = distance
 
-
                 print(min, max)
                 fac = self.dFactor/max
-
 
         for o in childrens:
             try:
                 st = o[0].animation_data.nla_tracks[0].strips[0]
-
                 timeOffset = (o[1]-min)*fac+random.random()*self.rFactor+self.offset
-
-
-
                 st.frame_end = st.frame_end + timeOffset + 1
                 st.frame_start = st.frame_start + timeOffset
 
@@ -308,9 +261,7 @@ class randomizeTimeDistance(bpy.types.Operator):
         self.offset = 0
         self.dFactor = 30
 
-
         return context.window_manager.invoke_props_dialog(self)
-
 
 #########################################
 #  seperateToLayers
@@ -320,14 +271,10 @@ class seperateToLayers(bpy.types.Operator):
     bl_idname = "theplant.seperatetolayers"
     bl_label = "Seperate to layers"
 
-
-
     slayer = bpy.props.IntProperty(name="Start layer:",
                                    min=1, max=300)
     nlayers = bpy.props.IntProperty(name="Number of layers:",
                                     min=1, max=300)
-
-
 
     def execute(self, context):
         bpy.context.scene.layers = tuple(True for i in range(0, 20))
@@ -349,14 +296,8 @@ class seperateToLayers(bpy.types.Operator):
                 pass
                #print("Finding charaters problem!")
 
-
-
-
-
         sortedCH = sorted(childrens, key=lambda a: a[1])
         numObj = len(sortedCH)
-
-
 
         fac = numObj/layerSpan
 
@@ -367,14 +308,7 @@ class seperateToLayers(bpy.types.Operator):
                 if c.type == "MESH":
                     c.layers = tuple(i == layer  for i in range(0, 20))
 
-
-
-
         bpy.context.scene.layers = tuple(i == 0 for i in range(0, 20))
-
-
-
-
 
         return {'FINISHED'}
 
@@ -383,19 +317,7 @@ class seperateToLayers(bpy.types.Operator):
         self.slayer = 10
         self.nlayers = 4
 
-
         return context.window_manager.invoke_props_dialog(self)
-
-
-
-
-
-
-
-
-
-
-
 
 Xcopies = 2
 Ycopies = 2
@@ -419,8 +341,6 @@ class CharacterCopyDialogOperator(bpy.types.Operator):
                                     min=1, max=300)
     ycopies = bpy.props.IntProperty(name="Copies in Y:",
                                     min=1, max=300)
-
-
     xspacing = bpy.props.FloatProperty(name="Spacing in X:",
                                        min=1, max=300)
     yspacing = bpy.props.FloatProperty(name="Spacing in Y:",
@@ -432,15 +352,10 @@ class CharacterCopyDialogOperator(bpy.types.Operator):
     mlayer = bpy.props.IntProperty(name="Geometry layer:",
                                    min=1, max=20)
 
-
-
     my_bool = bpy.props.BoolProperty(name="Leave original:")
-
     my_string = bpy.props.StringProperty(name="Parent Empty name:")
 
-
     def execute(self, context):
-
         global ParentName, Xcopies, Ycopies, XSpacing
         global YSpacing, RandomXY, LeaveOrg, Alayer, Mlayer, RandomTime
         RandomXY = self.randomXY
@@ -453,10 +368,7 @@ class CharacterCopyDialogOperator(bpy.types.Operator):
         Alayer = self.alayer
         Mlayer = self.mlayer
         RandomTime = self.randomTime
-
         bpy.ops.theplant.charactercopy()
-
-
 
         return {'FINISHED'}
 
@@ -479,9 +391,6 @@ class CharacterCopyDialogOperator(bpy.types.Operator):
 
         return context.window_manager.invoke_props_dialog(self)
 
-
-
-
 class CharacterCopy(bpy.types.Operator):
     """Duplicating objecs"""
     bl_idname = "theplant.charactercopy"
@@ -489,10 +398,6 @@ class CharacterCopy(bpy.types.Operator):
     bl_options = {'REGISTER', 'UNDO'}  # enable undo for the operator.
 
     def execute(self, context):        # execute() is called by blender when running the operator.
-
-
-
-
         bpy.ops.object.mode_set(mode='OBJECT', toggle=False)
 
         # Get the current scene
@@ -514,10 +419,6 @@ class CharacterCopy(bpy.types.Operator):
         parent.location = (0, 0, 0)
         parent["Crowd"] = True
 
-
-
-
-
         global ParentName, Xcopies, Ycopies, XSpacing, YSpacing
         global RandomXY, LeaveOrg, Alayer, Mlayer, RandomTime
         alayer = Alayer
@@ -530,42 +431,26 @@ class CharacterCopy(bpy.types.Operator):
         rA = RandomXY
         parent.name = ParentName
 
-
-
-
-
         for i in range(width):
             for j in range(depth):
-
-
-
                 r1 = (random.random()-0.5)*2*rA
                 r2 = (random.random()-0.5)*2*rA
 
                 location = (j*xspacing+r1, i*yspacing-r2, obj.location[2])
-
                 obj_new = obj.copy()
-
-
 
                 obj_new.location = location
                 scene.objects.link(obj_new)
                 obj_new.layers = obj.layers
-
 
                 for o in obj.children:
                     objs_new = o.copy()
 
                     scene.objects.link(objs_new)
 
-
-                    location = (j*xspacing+r1, i*yspacing-r2, o.location[2])
+                    location = (o.location[0]+j*xspacing+r1, o.location[1]+i*yspacing-r2, o.location[2])
                     objs_new.location = location
                     objs_new.layers = obj.layers
-
-
-
-
 
                     objs_new.modifiers["Armature"].object = bpy.data.objects[obj_new.name]
 
@@ -575,18 +460,10 @@ class CharacterCopy(bpy.types.Operator):
                     bpy.context.scene.objects.active = obj_new
                     bpy.ops.object.parent_set()
 
-
-
                 bpy.ops.object.select_all(action="DESELECT")
                 obj_new.select = True
                 bpy.context.scene.objects.active = parent
                 bpy.ops.object.parent_set()
-
-
-
-
-
-
 
         bpy.ops.object.select_all(action="DESELECT")
 
@@ -597,15 +474,12 @@ class CharacterCopy(bpy.types.Operator):
             bpy.ops.object.delete()
         set_layer = lambda y: tuple(i == y for i in range(0, 20))
 
-
         for c in parent.children:
             if alayer != 1:
-
                 c.layers = set_layer(alayer-1)
 
             for m in c.children:
                 if mlayer != 1:
-
                     m.layers = set_layer(mlayer-1)
 
         if leaveOrg is False:
@@ -614,19 +488,13 @@ class CharacterCopy(bpy.types.Operator):
                 o.select = True
             bpy.ops.object.delete()
 
-
         return {'FINISHED'}
 
 def register():
     bpy.utils.register_module(__name__)
 
-
 def unregister():
-
     bpy.utils.unregister_module(__name__)
 
 if __name__ == "__main__":
     register()
-
-
-
