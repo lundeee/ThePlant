@@ -10,7 +10,6 @@
 # Lundeee
 #
 #
-# pylint: disable=too-many-instance-attributes,missing-docstring,invalid-name,import-error
 
 bl_info = {"name": "ThePlant",
            "author": "Lundeee",
@@ -469,40 +468,9 @@ class CharacterCopy(bpy.types.Operator):
 
                         for i in cur.children:
                             allObj.append(i)
-                    print(type(i))
-                    #obj_new.location=(i+2.2,0,0)
-                    
-                
                 
                 
 
-#                obj_new = obj.copy()
-#
-#                obj_new.location = location
-#                scene.objects.link(obj_new)
-#                obj_new.layers = obj.layers
-#
-#                for o in obj.children:
-#                    objs_new = o.copy()
-#
-#                    scene.objects.link(objs_new)
-#
-#                    location = (o.location[0]+j*xspacing+r1, o.location[1]+i*yspacing-r2, o.location[2])
-#                    objs_new.location = location
-#                    objs_new.layers = obj.layers
-#
-#                    #objs_new.modifiers["Armature"].object = bpy.data.objects[obj_new.name]
-#
-#                    bpy.ops.object.select_all(action='DESELECT')
-#                    objs_new.select = True
-#
-#                    bpy.context.scene.objects.active = obj_new
-#                    bpy.ops.object.parent_set()
-#
-#                bpy.ops.object.select_all(action="DESELECT")
-#                obj_new.select = True
-#                bpy.context.scene.objects.active = parent
-#                bpy.ops.object.parent_set()
 
         bpy.ops.object.select_all(action="DESELECT")
 
@@ -540,4 +508,4 @@ if __name__ == "__main__":
 
 
 
-   
+
