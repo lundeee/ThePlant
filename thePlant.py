@@ -96,7 +96,7 @@ class deleteHierarchy(bpy.types.Operator):
             cur.select = True
 
         bpy.ops.object.delete()
-        bpy.context.scene.layersi = ly
+        bpy.context.scene.layers = ly
 
         return{'FINISHED'}
 
@@ -424,8 +424,8 @@ class CharacterCopy(bpy.types.Operator):
         alayer = Alayer
         mlayer = Mlayer
         leaveOrg = LeaveOrg
-        width = Xcopies
-        depth = Ycopies
+        width = int(Xcopies)
+        depth = int(Ycopies)
         xspacing = XSpacing
         yspacing = YSpacing
         rA = RandomXY
@@ -436,34 +436,73 @@ class CharacterCopy(bpy.types.Operator):
                 r1 = (random.random()-0.5)*2*rA
                 r2 = (random.random()-0.5)*2*rA
 
-                location = (obj.location[0]+j*xspacing+r1, obj.location[1]+i*yspacing-r2, obj.location[2])
-                obj_new = obj.copy()
+                #location = (j, i, obj.location[2])
+                obj_new = None
+                allObj=[obj]
+                copyRel={}
+                if obj != None:
+                    while allObj != []:
+                        cur = allObj.pop(0)
+                        if cur.parent != None:
+                            cur_new=cur.copy()
+                            copyRel[cur.name] = cur_new.name
+                            bpy.context.scene.objects.link(cur_new)
+                            try:
+                                cur_new.parent=bpy.data.objects[copyRel[cur.parent.name]]
+                                
+                            except:
+                                obj_new=cur_new
+                            cur_new.matrix_world = cur.matrix_world
 
-                obj_new.location = location
-                scene.objects.link(obj_new)
-                obj_new.layers = obj.layers
+                        else:
+                            
+                            cur_new=cur.copy()
+                            bpy.context.scene.objects.link(cur_new)
+                            copyRel[cur.name] = cur_new.name
+                            obj_new=cur_new
+                        if cur_new.type == "MESH":
+                            try:
+                                cur_new.modifiers['Armature'].object=bpy.data.objects[copyRel[cur.modifiers['Armature'].object.name]]
+                            except:
+                                pass
+                           
 
-                for o in obj.children:
-                    objs_new = o.copy()
+                        for i in cur.children:
+                            allObj.append(i)
+                    print(type(i))
+                    #obj_new.location=(i+2.2,0,0)
+                    
+                
+                
+                
 
-                    scene.objects.link(objs_new)
-
-                    location = (o.location[0]+j*xspacing+r1, o.location[1]+i*yspacing-r2, o.location[2])
-                    objs_new.location = location
-                    objs_new.layers = obj.layers
-
-                    objs_new.modifiers["Armature"].object = bpy.data.objects[obj_new.name]
-
-                    bpy.ops.object.select_all(action='DESELECT')
-                    objs_new.select = True
-
-                    bpy.context.scene.objects.active = obj_new
-                    bpy.ops.object.parent_set()
-
-                bpy.ops.object.select_all(action="DESELECT")
-                obj_new.select = True
-                bpy.context.scene.objects.active = parent
-                bpy.ops.object.parent_set()
+#                obj_new = obj.copy()
+#
+#                obj_new.location = location
+#                scene.objects.link(obj_new)
+#                obj_new.layers = obj.layers
+#
+#                for o in obj.children:
+#                    objs_new = o.copy()
+#
+#                    scene.objects.link(objs_new)
+#
+#                    location = (o.location[0]+j*xspacing+r1, o.location[1]+i*yspacing-r2, o.location[2])
+#                    objs_new.location = location
+#                    objs_new.layers = obj.layers
+#
+#                    #objs_new.modifiers["Armature"].object = bpy.data.objects[obj_new.name]
+#
+#                    bpy.ops.object.select_all(action='DESELECT')
+#                    objs_new.select = True
+#
+#                    bpy.context.scene.objects.active = obj_new
+#                    bpy.ops.object.parent_set()
+#
+#                bpy.ops.object.select_all(action="DESELECT")
+#                obj_new.select = True
+#                bpy.context.scene.objects.active = parent
+#                bpy.ops.object.parent_set()
 
         bpy.ops.object.select_all(action="DESELECT")
 
@@ -498,3 +537,7 @@ def unregister():
 
 if __name__ == "__main__":
     register()
+
+
+
+   
