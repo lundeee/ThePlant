@@ -403,15 +403,6 @@ class CharacterCopy(bpy.types.Operator):
         scene = context.scene
         obj = scene.objects.active
 
-        if obj:
-            if obj.type != "ARMATURE":
-                return {'FINISHED'}
-        else:
-            return {'FINISHED'}
-
-        # Get the active object (assume we have one)
-
-        obj = scene.objects.active
         bpy.ops.object.add()
         parent = scene.objects.active
 
@@ -420,11 +411,12 @@ class CharacterCopy(bpy.types.Operator):
 
         global ParentName, Xcopies, Ycopies, XSpacing, YSpacing
         global RandomXY, LeaveOrg, Alayer, Mlayer, RandomTime
+
         alayer = Alayer
         mlayer = Mlayer
         leaveOrg = LeaveOrg
-        width = int(Xcopies)
-        depth = int(Ycopies)
+        width = Xcopies
+        depth = Ycopies
         xspacing = XSpacing
         yspacing = YSpacing
         rA = RandomXY
