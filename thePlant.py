@@ -35,6 +35,7 @@ class ToolsPanel(bpy.types.Panel):
     bl_category = "The Plant"
     bl_context = "objectmode"
 
+    
     def draw(self, context):
         layout = self.layout
         layout.label("Duplication!")
@@ -68,7 +69,7 @@ class ToolsPanel(bpy.types.Panel):
 
 class OBJECT_OT_Button(bpy.types.Operator):
     bl_idname = "theplant.button"
-    bl_label = "Button"
+    bl_label="Button"
 
     def execute(self, context):
         bpy.ops.theplant.charactercopy_dialogoperator('INVOKE_DEFAULT')
