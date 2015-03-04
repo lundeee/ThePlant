@@ -41,6 +41,9 @@ class ToolsPanel(bpy.types.Panel):
         row = layout.row(align=True)
         row.alignment = 'EXPAND'
         row.operator("theplant.button", text="Duplicate Characters", icon='MOD_ARRAY')
+        row = layout.row(align=True)
+        row.operator("theplant.duplicatetomesh", text="Duplicate Characters to mesh", icon='MOD_ARRAY')
+        #row.prop_search(self, "lowpoly", bpy.context.scene, "objects")
         layout.label("Tools")
 
         row = layout.row(align=True)
@@ -70,6 +73,8 @@ class OBJECT_OT_Button2(bpy.types.Operator):
     def execute(self, context):
         bpy.ops.theplant.seperatetolayers('INVOKE_DEFAULT')
         return{'FINISHED'}
+
+
 
 ###############################
 #      deleteHierarchy(
@@ -131,11 +136,94 @@ class randomizeTime(bpy.types.Operator):
         self.offset = 0
 
         return context.window_manager.invoke_props_dialog(self)
+###############################
+#      Duplicat to Mehs
+###############################
+
+class duplicateToMesh(bpy.types.Operator):
+    bl_idname = "theplant.duplicatetomesh"
+    bl_label = "Duplicate rig to mesh"
+
+                
+     
+              
+  
+    
+    
+    
+   
+    
+
+
+    def execute(self, context):
+        obj=bpy.context.object
+        mesh = None
+        for o in bpy.context.selected_objects:
+            if o != obj:
+                if o.type == "MESH":
+                    mesh = o
+        print(mesh)
+        bpy.ops.object.add()
+        master = bpy.context.object
+        master.location=(0,0,0)
+        master.name="Crowd"
+        
+        if o != None:
+            for vertice in mesh.data.vertices.items():
+
+
+                
+                
+                obj_new = None
+                allObj=[obj]
+                copyRel={}
+                if obj != None:
+                    while allObj != []:
+                        cur = allObj.pop(0)
+                        if cur.parent != None:
+                            cur_new=cur.copy()
+                            copyRel[cur.name] = cur_new.name
+                            bpy.context.scene.objects.link(cur_new)
+                            try:
+                                cur_new.parent=bpy.data.objects[copyRel[cur.parent.name]]
+                                
+                            except:
+                                obj_new=cur_new
+                            cur_new.matrix_world = cur.matrix_world
+
+                        else:
+                            
+                            cur_new=cur.copy()
+                            bpy.context.scene.objects.link(cur_new)
+                            copyRel[cur.name] = cur_new.name
+                            obj_new=cur_new
+                        if cur_new.type == "MESH":
+                            try:
+                                cur_new.modifiers['Armature'].object=bpy.data.objects[copyRel[cur.modifiers['Armature'].object.name]]
+                            except:
+                                pass
+                           
+
+                        for i in cur.children:
+                            allObj.append(i)
+                    obj_new.parent = master
+                    
+                    obj_new.location = mesh.matrix_world*vertice[1].co 
+            
+                
+        return {'FINISHED'}
+#        
+#    def invoke(self, context, event):
+#        
+#
+#
+#
+#        return context.window_manager.invoke_props_dialog(self)
 
 ###############################
 #      Replace mesh
-###############################
-
+###############################    
+    
 class replaceMesh(bpy.types.Operator):
     bl_idname = "theplant.replacemesh"
     bl_label = "Replace mesh"
@@ -481,11 +569,6 @@ class CharacterCopy(bpy.types.Operator):
                 if mlayer != 1:
                     m.layers = set_layer(mlayer-1)
 
-        if leaveOrg is False:
-            obj.select = True
-            for o in obj.children:
-                o.select = True
-            bpy.ops.object.delete()
 
         return {'FINISHED'}
 
