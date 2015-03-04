@@ -44,8 +44,16 @@ class ToolsPanel(bpy.types.Panel):
         row = layout.row(align=True)
         row.operator("theplant.duplicatetomesh", text="Duplicate Characters to mesh", icon='MOD_ARRAY')
         #row.prop_search(self, "lowpoly", bpy.context.scene, "objects")
+        
+        layout.label("Face tools")
+        row = layout.row(align=True)
+        row.operator("theplant.makepointcache", text="Make point cache", icon='PARTICLE_POINT')
+        row = layout.row(align=True)
+        row.operator("theplant.makepointcache", text="Unlink drivers", icon='SCRIPT')
+        row = layout.row(align=True)
+        row.operator("theplant.makepointcache", text="Unlink shape keys", icon='SCRIPT')        
         layout.label("Tools")
-
+        
         row = layout.row(align=True)
         row.operator("theplant.button2", text="Seperate to layers by distance", icon='RENDERLAYERS')
         row = layout.row(align=True)
@@ -74,7 +82,17 @@ class OBJECT_OT_Button2(bpy.types.Operator):
         bpy.ops.theplant.seperatetolayers('INVOKE_DEFAULT')
         return{'FINISHED'}
 
+###############################
+#      deleteHierarchy(
+###############################
+class deleteHierarchy(bpy.types.Operator):
+    bl_idname = "theplant.makepointcache"
+    bl_label = "Make point cache"
 
+    def execute(self, context):
+       
+
+        return{'FINISHED'}
 
 ###############################
 #      deleteHierarchy(
@@ -142,38 +160,26 @@ class randomizeTime(bpy.types.Operator):
 
 class duplicateToMesh(bpy.types.Operator):
     bl_idname = "theplant.duplicatetomesh"
-    bl_label = "Duplicate rig to mesh"
-
-                
-     
-              
-  
-    
-    
-    
-   
-    
+    bl_label = "Duplicate rig to mesh vertices"
 
 
     def execute(self, context):
+        
         obj=bpy.context.object
         mesh = None
+        
         for o in bpy.context.selected_objects:
             if o != obj:
                 if o.type == "MESH":
                     mesh = o
-        print(mesh)
+        
         bpy.ops.object.add()
         master = bpy.context.object
         master.location=(0,0,0)
         master.name="Crowd"
         
-        if o != None:
+        if mesh != None:
             for vertice in mesh.data.vertices.items():
-
-
-                
-                
                 obj_new = None
                 allObj=[obj]
                 copyRel={}
@@ -185,32 +191,27 @@ class duplicateToMesh(bpy.types.Operator):
                             copyRel[cur.name] = cur_new.name
                             bpy.context.scene.objects.link(cur_new)
                             try:
-                                cur_new.parent=bpy.data.objects[copyRel[cur.parent.name]]
-                                
+                                cur_new.parent=bpy.data.objects[copyRel[cur.parent.name]]                                       
                             except:
                                 obj_new=cur_new
                             cur_new.matrix_world = cur.matrix_world
-
                         else:
-                            
                             cur_new=cur.copy()
                             bpy.context.scene.objects.link(cur_new)
                             copyRel[cur.name] = cur_new.name
                             obj_new=cur_new
                         if cur_new.type == "MESH":
                             try:
-                                cur_new.modifiers['Armature'].object=bpy.data.objects[copyRel[cur.modifiers['Armature'].object.name]]
+                                new_armature_name = copyRel[cur.modifiers['Armature'].object.name]
+                                cur_new.modifiers['Armature'].object = bpy.data.objects[new_armature_name]
                             except:
                                 pass
-                           
-
-                        for i in cur.children:
-                            allObj.append(i)
-                    obj_new.parent = master
+                        for ch in cur.children:
+                            allObj.append(ch)
                     
+                    obj_new.parent = master
                     obj_new.location = mesh.matrix_world*vertice[1].co 
-            
-                
+        
         return {'FINISHED'}
 #        
 #    def invoke(self, context, event):
