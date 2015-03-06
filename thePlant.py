@@ -156,73 +156,62 @@ class randomizeTime(bpy.types.Operator):
 
         return context.window_manager.invoke_props_dialog(self)
 ###############################
-#      Duplicat to Mehs
+#   Duplicate rig to mesh
 ###############################
 
 class duplicateToMesh(bpy.types.Operator):
     bl_idname = "theplant.duplicatetomesh"
     bl_label = "Duplicate rig to mesh vertices"
-
+    bl_options = {'REGISTER', 'UNDO'} 
 
     def execute(self, context):
         
         obj=bpy.context.object
-        mesh = None
         
+        mesh = None        
         for o in bpy.context.selected_objects:
             if o != obj:
                 if o.type == "MESH":
                     mesh = o
         
-        if mesh != None && obj != None:
+        if mesh != None and obj != None:
             bpy.ops.object.add()
             master = bpy.context.object
             master.location=(0,0,0)
             master.name="Crowd"
+            
             for vertice in mesh.data.vertices.items():
+                
                 obj_new = None
                 allObj=[obj]
                 copyRel={}
                 hasDrivers=[]
-                
-                
+
                 while allObj != []:
                     cur = allObj.pop(0)
+                    cur_new=cur.copy()
+                    copyRel[cur.name] = cur_new.name
+                    bpy.context.scene.objects.link(cur_new)
                     
-                    if cur.parent != None:
-                        cur_new=cur.copy()
-                        if cur_new.type == "ARMATURE":
-                            try:
-                                if len(cur_new.animation_data.drivers) > 0:
-                                    hasDrivers.append(cur_new)
-                            except:
-                                pass
-                        copyRel[cur.name] = cur_new.name
-                        bpy.context.scene.objects.link(cur_new)
-                        try:
-                            cur_new.parent=bpy.data.objects[copyRel[cur.parent.name]]                                                    except:
-                            obj_new=cur_new
-                        cur_new.matrix_world = cur.matrix_world
-                    
-                    else:
-                        cur_new=cur.copy()
-                        if cur_new.type == "ARMATURE":
-                            try:
-                                if len(cur_new.animation_data.drivers) > 0:
-                                    hasDrivers.append(cur_new)
-                            except:
-                                pass
-                        bpy.context.scene.objects.link(cur_new)
-                        copyRel[cur.name] = cur_new.name
+                    if obj_new == None:
                         obj_new=cur_new
-                    
+                      
+                    if hasattr(cur_new.animation_data , "drivers"):
+                        if len(cur_new.animation_data.drivers) > 0:
+                            hasDrivers.append(cur_new)
+
+                    if cur.parent != None:
+                        if cur.parent.name in copyRel:
+                            cur_new.parent=bpy.data.objects[copyRel[cur.parent.name]]                         
+                        cur_new.matrix_world = cur.matrix_world
+                   
                     if cur_new.type == "MESH":
-                        try:
-                            new_armature_object = copyRel[cur.modifiers['Armature'].object.name]
-                            cur_new.modifiers['Armature'].object = bpy.data.objects[new_armature_object]
-                        except:
-                            pass
-                    
+                        for mod in cur.modifiers:
+                            if mod.name == "Armature":
+                                if mod.object.name in copyRel:
+                                    new_armature_object = copyRel[cur.modifiers['Armature'].object.name]
+                                    cur_new.modifiers['Armature'].object = bpy.data.objects[new_armature_object]
+
                     for ch in cur.children:
                         allObj.append(ch)
                 
@@ -231,20 +220,15 @@ class duplicateToMesh(bpy.types.Operator):
                         for var in d.driver.variables:
                             for tar in var.targets:
                                 if tar.id != None:
-                                    new_driver_target = copyRel[tar.id.name]
-                                    tar.id = bpy.data.objects[new_driver_target]
-                
+                                    if tar.id.name in copyRel:
+                                        new_driver_target = copyRel[tar.id.name]
+                                        tar.id = bpy.data.objects[new_driver_target]
+
                 obj_new.parent = master
                 obj_new.location = mesh.matrix_world*vertice[1].co 
 
         return {'FINISHED'}
-#        
-#    def invoke(self, context, event):
-#        
-#
-#
-#
-#        return context.window_manager.invoke_props_dialog(self)
+
 
 ###############################
 #      Replace mesh
@@ -577,9 +561,6 @@ class CharacterCopy(bpy.types.Operator):
 
                         for i in cur.children:
                             allObj.append(i)
-                
-                
-
 
         bpy.ops.object.select_all(action="DESELECT")
 
