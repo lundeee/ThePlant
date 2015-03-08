@@ -136,17 +136,24 @@ class randomizeTime(bpy.types.Operator):
 
     def execute(self, context):
         obj = bpy.context.scene.objects.active
-        for o in obj.children:
-            if o.type == "ARMATURE":
-                try:
-                    timeOffset = random.random()*self.rFactor+self.offset
-                    st = o.animation_data.nla_tracks[0].strips[0]
-                    st.frame_end = st.frame_end + timeOffset
-                    st.frame_start = st.frame_start + timeOffset
-                except:
-                    pass
-                    #print("nono")
-
+        allObj=[obj]
+        
+        
+        while allObj != []:
+            
+            cur = allObj.pop(0)
+            timeOffset = random.random()*self.rFactor+self.offset
+            if cur.type == "ARMATURE":
+                if hasattr(cur.animation_data , "nla_tracks"):
+                    for track in cur.animation_data.nla_tracks:
+                        for strip in track.strips:
+                            strip.frame_end = strip.frame_end + timeOffset
+                            strip.frame_start = strip.frame_start + timeOffset
+                             
+                
+            for ch in cur.children:
+                allObj.append(ch)
+    
         return {'FINISHED'}
 
     def invoke(self, context, event):
@@ -155,6 +162,7 @@ class randomizeTime(bpy.types.Operator):
         self.offset = 0
 
         return context.window_manager.invoke_props_dialog(self)
+
 ###############################
 #   Duplicate rig to mesh
 ###############################
@@ -162,7 +170,12 @@ class randomizeTime(bpy.types.Operator):
 class duplicateToMesh(bpy.types.Operator):
     bl_idname = "theplant.duplicatetomesh"
     bl_label = "Duplicate rig to mesh vertices"
-    bl_options = {'REGISTER', 'UNDO'} 
+    
+    bl_options = {'REGISTER', 'UNDO'}
+    
+    mesh_layer = bpy.props.IntProperty(name="Mesh layer:")
+    armature_layer = bpy.props.IntProperty(name="Armature layer:")
+    
 
     def execute(self, context):
         
@@ -204,8 +217,15 @@ class duplicateToMesh(bpy.types.Operator):
                         if cur.parent.name in copyRel:
                             cur_new.parent=bpy.data.objects[copyRel[cur.parent.name]]                         
                         cur_new.matrix_world = cur.matrix_world
-                   
+                    
+                    if cur_new.type == "ARMATURE":    
+                        cur_new.layers = tuple(i ==  self.armature_layer-1 for i in range(0, 20))
+                    
                     if cur_new.type == "MESH":
+                        #cur_new.data=cur_new.data.copy()    !!!!!!!
+                        
+                        cur_new.layers = tuple(i ==  self.mesh_layer-1 for i in range(0, 20))
+                        
                         for mod in cur.modifiers:
                             if mod.name == "Armature":
                                 if mod.object.name in copyRel:
@@ -228,6 +248,11 @@ class duplicateToMesh(bpy.types.Operator):
                 obj_new.location = mesh.matrix_world*vertice[1].co 
 
         return {'FINISHED'}
+        
+    def invoke(self, context, event):
+        self.armature_layer = 2
+        self.mesh_layer = 1
+        return context.window_manager.invoke_props_dialog(self)
 
 
 ###############################
@@ -237,6 +262,7 @@ class duplicateToMesh(bpy.types.Operator):
 class replaceMesh(bpy.types.Operator):
     bl_idname = "theplant.replacemesh"
     bl_label = "Replace mesh"
+
 
 #    offset = bpy.props.IntProperty(name="Offset all by:")
 
