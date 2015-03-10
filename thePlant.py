@@ -12,13 +12,13 @@
 #
 
 bl_info = {"name": "ThePlant",
-           "author": "Lundeee",
+           "author": "Lundeee@gmail.com",
    	       "version": (0, 0, 4, "experimental"),
            "blender": (2, 72, 0),
            "category": "Object",
            "location": "",
            "warning": "",
-           "wiki_url": "",
+           "github_url": "https://github.com/lundeee/ThePlant-addon",
            "tracker_url": "",
            "description": "Script for mass duplication of complete rigs"}
 
@@ -43,7 +43,7 @@ class ToolsPanel(bpy.types.Panel):
         row.alignment = 'EXPAND'
         row.operator("theplant.button", text="Duplicate Characters", icon='MOD_ARRAY')
         row = layout.row(align=True)
-        row.operator("theplant.duplicatetomesh", text="Duplicate Characters to mesh", icon='MOD_ARRAY')
+        row.operator("theplant.duplicatetomesh", text="Duplicate Characters to mesh", icon='LATTICE_DATA')
         #row.prop_search(self, "lowpoly", bpy.context.scene, "objects")
         
         layout.label("Face tools")
@@ -60,11 +60,14 @@ class ToolsPanel(bpy.types.Panel):
         row = layout.row(align=True)
         row.operator("theplant.randomizetime", text="Randomize time offset", icon='TIME')
         row = layout.row(align=True)
+        
+        row.operator("theplant.randomizeparameter", text="Randomize parameter on bone", icon='RNDCURVE')
+        row = layout.row(align=True)
         row.operator("theplant.randomizetimedistance", text="Offset time by distance", icon='TIME')
         row = layout.row(align=True)
         row.operator("theplant.replacemesh", text="Replace mesh", icon='MESH_DATA')
         row = layout.row(align=True)
-        row.operator("theplant.deletehierarchy", text="Delete hierarchy!!", icon='X')
+        row.operator("theplant.deletehierarchy", text="Delete hierarchy!!", icon='CANCEL')
 
 
 class OBJECT_OT_Button(bpy.types.Operator):
@@ -138,21 +141,37 @@ class randomizeTime(bpy.types.Operator):
         obj = bpy.context.scene.objects.active
         allObj=[obj]
         
-        
-        while allObj != []:
-            
-            cur = allObj.pop(0)
+        for car in obj.children:
             timeOffset = random.random()*self.rFactor+self.offset
-            if cur.type == "ARMATURE":
-                if hasattr(cur.animation_data , "nla_tracks"):
-                    for track in cur.animation_data.nla_tracks:
-                        for strip in track.strips:
-                            strip.frame_end = strip.frame_end + timeOffset
-                            strip.frame_start = strip.frame_start + timeOffset
-                             
+            allObj=[car]
+            while allObj != []:
                 
-            for ch in cur.children:
-                allObj.append(ch)
+                cur = allObj.pop(0)
+                if cur.type == "MESH":
+                    try:
+                        cur.modifiers['Mesh Cache'].frame_start = timeOffset
+                    except:
+                        pass
+                    
+                if cur.type == "ARMATURE":
+                    if hasattr(cur.animation_data , "nla_tracks"):
+                        for track in cur.animation_data.nla_tracks:
+                            for strip in track.strips:
+                                strip.frame_end = strip.frame_end + timeOffset
+                                strip.frame_start = strip.frame_start + timeOffset
+                                if strip.name=="roke.001":
+                                    rr=round(random.random())
+                                    if rr == 1:
+                                        strip.action = bpy.data.actions['roke.002']
+                                    else:
+                                            
+                                        strip.action = bpy.data.actions['roke.001']
+                                    
+                                    strip.influence=random.random()
+                                 
+                    
+                for ch in cur.children:
+                    allObj.append(ch)
     
         return {'FINISHED'}
 
@@ -162,9 +181,53 @@ class randomizeTime(bpy.types.Operator):
         self.offset = 0
 
         return context.window_manager.invoke_props_dialog(self)
-
 ###############################
-#   Duplicate rig to mesh
+#   Randomize parameter on bone
+###############################
+
+class duplicateToMesh(bpy.types.Operator):
+    bl_idname = "theplant.randomizeparameter"
+    bl_label = "Randomize parameter on multiple rigs"
+    
+    bl_options = {'REGISTER', 'UNDO'}
+    
+    object_name = bpy.props.StringProperty(name="Object name:")
+    parameter = bpy.props.StringProperty(name="Parameter:")
+    ammount =  bpy.props.FloatProperty(name="Amount:")
+
+    def execute(self, context):
+        obj = bpy.context.object
+        allObj = [obj]
+        while allObj != []:
+            cur = allObj.pop(0)
+            if cur.type == "ARMATURE":
+                try:
+                    if cur.pose.bones[self.object_name].rotation_mode == "QUATERNION":
+                        if self.parameter == "x":
+                            cur.pose.bones[self.object_name].rotation_quaternion[1] = (random.random()-0.5)*self.ammount
+                        if self.parameter == "y":
+                            cur.pose.bones[self.object_name].rotation_quaternion[2] = (random.random()-0.5)*self.ammount
+                        if self.parameter == "z":
+                            cur.pose.bones[self.object_name].rotation_quaternion[3] = (random.random()-0.5)*self.ammount
+                except: 
+                    pass        
+                
+                
+            
+            for ch in cur.children:
+                allObj.append(ch)
+                
+        return {'FINISHED'}
+    
+    
+    
+    def invoke(self, context, event):
+        self.object_name = ""
+        self.parameter = "z"
+        self.ammount = 0.3
+        return context.window_manager.invoke_props_dialog(self)
+###############################
+#   Duplicate rig to mesh vertices
 ###############################
 
 class duplicateToMesh(bpy.types.Operator):
@@ -228,9 +291,10 @@ class duplicateToMesh(bpy.types.Operator):
                         
                         for mod in cur.modifiers:
                             if mod.name == "Armature":
-                                if mod.object.name in copyRel:
-                                    new_armature_object = copyRel[cur.modifiers['Armature'].object.name]
-                                    cur_new.modifiers['Armature'].object = bpy.data.objects[new_armature_object]
+                                if mod.object != None:
+                                    if mod.object.name in copyRel:
+                                        new_armature_object = copyRel[cur.modifiers['Armature'].object.name]
+                                        cur_new.modifiers['Armature'].object = bpy.data.objects[new_armature_object]
 
                     for ch in cur.children:
                         allObj.append(ch)
