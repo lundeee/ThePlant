@@ -13,7 +13,7 @@
 
 bl_info = {"name": "ThePlant",
            "author": "Lundeee@gmail.com",
-   	       "version": (0, 0, 4, "experimental"),
+   	       "version": (0, 0, 6, "experimental"),
            "blender": (2, 72, 0),
            "category": "Object",
            "location": "",
