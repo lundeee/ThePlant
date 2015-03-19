@@ -281,7 +281,11 @@ class duplicateToMesh(bpy.types.Operator):
                             cur_new.parent=bpy.data.objects[copyRel[cur.parent.name]]                         
                         cur_new.matrix_world = cur.matrix_world
                     
-                    if cur_new.type == "ARMATURE":    
+                    if cur_new.type == "ARMATURE":
+                        if hasattr(cur_new.data.animation_data , "drivers"):
+                            if len(cur_new.data.animation_data.drivers) > 0:
+                                hasDrivers.append(cur_new.data)
+                                 
                         cur_new.layers = tuple(i ==  self.armature_layer-1 for i in range(0, 20))
                     
                     if cur_new.type == "MESH":
@@ -299,11 +303,14 @@ class duplicateToMesh(bpy.types.Operator):
                     for ch in cur.children:
                         allObj.append(ch)
                 
+                print(copyRel)
                 for drob in hasDrivers:
+                    print(type(drob))
                     for d in drob.animation_data.drivers:
                         for var in d.driver.variables:
                             for tar in var.targets:
                                 if tar.id != None:
+                                    print("%s -->  %s" % (tar.id.name,copyRel[tar.id.name]))
                                     if tar.id.name in copyRel:
                                         new_driver_target = copyRel[tar.id.name]
                                         tar.id = bpy.data.objects[new_driver_target]
@@ -671,6 +678,26 @@ class CharacterCopy(bpy.types.Operator):
 
 
         return {'FINISHED'}
+    
+    
+class VertexToZeroX(bpy.types.Operator):
+    """VertexToZeroX"""
+    bl_idname = "theplant.vertextozero"
+    bl_label = "theplant.vertextozero"         # display name in the interface.
+    bl_options = {'REGISTER', 'UNDO'}  # enable undo for the operator.
+    import bmesh
+    def execute(self, context):
+        
+        bm = bmesh.from_edit_mesh(bpy.context.active_object.data)
+        selected_verts = [vert for vert in bm.verts if vert.select]
+        for v in selected_verts:
+            v.co[0]=0
+        
+        return {'FINISHED'}
+
+        
+        
+        
 
 def register():
     bpy.utils.register_module(__name__)
